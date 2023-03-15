@@ -20,10 +20,24 @@ describe("Registry", function () {
   });
 
   describe("Interactions", function () {
-    it("Should add an asset", async function () {
+    it("Should add an entry", async function () {
       const { admin, registry } = await loadFixture(deployContracts)
-      await registry.addEntry(5, admin.address, 1)
+      await registry.connect(admin).addEntry(5, admin.address, 1, 1, "", 1, "", "")
       expect((await registry.assets(0)).contractAddress).to.equal(admin.address)
+    })
+
+    it("Should get the asset id", async function () {
+      const { admin, registry } = await loadFixture(deployContracts)
+      await registry.connect(admin).addEntry(5, admin.address, 1, 1, "", 1, "", "")
+      const result = await registry.getAsset(1)
+      expect(await registry.getAsset(1)).to.equal(0)
+    })
+
+    it("Should edit an entry", async function () {
+      const { deployer, admin, registry } = await loadFixture(deployContracts)
+      await registry.connect(admin).addEntry(5, admin.address, 1, 1, "", 1, "", "")
+      await registry.connect(admin).editEntry(5, deployer.address, 1, 1, "", 1, "", "")
+      expect((await registry.assets(0)).contractAddress).to.equal(deployer.address)
     })
   })
 })
