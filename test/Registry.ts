@@ -36,8 +36,9 @@ describe("Registry", function () {
     it("Should edit an entry", async function () {
       const { deployer, admin, registry } = await loadFixture(deployContracts)
       await registry.connect(admin).addEntry(5, admin.address, 1, 1, "", 1, "", "")
-      await registry.connect(admin).editEntry(5, deployer.address, 1, 1, "", 1, "", "")
+      await registry.connect(admin).editEntry(1, deployer.address, 1, 1, "", 1, "", "")
       expect((await registry.assets(0)).contractAddress).to.equal(deployer.address)
+      expect((await registry.assets(0)).network).to.equal(1)
     })
   })
 })
