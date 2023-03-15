@@ -1,23 +1,34 @@
-import { ethers } from "hardhat";
+// npx hardhat run scripts/deploy.ts --network goerli
+import hre, { ethers, network, artifacts } from 'hardhat'
+import fs from 'fs'
+const color = require("cli-color")
+var msg = color.xterm(39).bgXterm(128);
+import * as dotenv from "dotenv"
+
+dotenv.config();
+var msg = color.xterm(39).bgXterm(128)
 
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-  const unlockTime = currentTimestampInSeconds + ONE_YEAR_IN_SECS;
+  
+  console.log("\nDeployment in progress...") 
+  const Registry = await ethers.getContractFactory("Registry")
+  const registry = await Registry.deploy()
+  await registry.deployed()
+  console.log("\nRegistry deployed at", msg(registry.address), "✅")
+  const receipt = await ethers.provider.getTransactionReceipt(registry.deployTransaction.hash)
+  console.log("\nBlock number:", msg(receipt.blockNumber))
 
-  const lockedAmount = ethers.utils.parseEther("1");
-
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-  await lock.deployed();
-
-  console.log(`Lock with 1 ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`);
+  try {
+    console.log("\nEtherscan verification in progress...")
+    await registry.deployTransaction.wait(6)
+    await hre.run("verify:verify", { network: network.name, address: registry.address, constructorArguments: [], })
+    console.log("Etherscan verification done. ✅")
+  } catch (error) {
+    console.error(error)
+  }
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
+  console.error(error)
+  process.exitCode = 1
 });
